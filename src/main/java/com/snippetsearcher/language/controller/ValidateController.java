@@ -1,4 +1,4 @@
-package com.snippetsearcher.language_service.controller;
+package com.snippetsearcher.language.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

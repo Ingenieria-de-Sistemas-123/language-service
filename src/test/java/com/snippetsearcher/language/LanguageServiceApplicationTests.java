@@ -1,4 +1,4 @@
-package com.snippetsearcher.language_service;
+package com.snippetsearcher.language;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
