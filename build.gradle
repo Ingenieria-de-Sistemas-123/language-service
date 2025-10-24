@@ -18,7 +18,18 @@ java {
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/Ingenieria-de-Sistemas-123/PrintScript")
+        credentials {
+            username = findProperty("gpr.user")
+                    ?: System.getenv("GPR_USER")
+                    ?: System.getenv("GITHUB_ACTOR")
+            password = findProperty("gpr.key")
+                    ?: System.getenv("GPR_KEY")
+                    ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -27,6 +38,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation("org.printscript:token:1.2")
+    implementation("org.printscript:common:1.2")
+    implementation("org.printscript:lexer:1.6")
+    implementation("org.printscript:parser:1.5")
+    implementation("org.printscript:interpreter:2.1")
+    implementation("org.printscript:formatter:3.2")
+    implementation("org.printscript:linter:1.6")
 }
 
 tasks.named('test') {
