@@ -1,6 +1,11 @@
 server:
   port: 8082
-management.endpoints.web.exposure.include: health,info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 spring:
   security:
@@ -8,4 +13,3 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: https://${AUTH0_DOMAIN}/
-          audiences: ${AUTH0_AUDIENCE}
