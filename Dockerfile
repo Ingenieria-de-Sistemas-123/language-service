@@ -1,9 +1,13 @@
-FROM gradle:8.10-jdk21 AS build
-WORKDIR /app
-COPY . .
-RUN gradle clean bootJar --no-daemon
+FROM gradle:8.10.1-jdk21 AS build
+COPY . /home/gradle/src
+WORKDIR /home/gradle/src
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN,required \
+    --mount=type=secret,id=github_username,env=GITHUB_USERNAME,required \
+    gradle assemble
+FROM eclipse-temurin:21.0.4_7-jre
+EXPOSE 8080
+RUN mkdir /app
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
 
-FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/build/libs/*SNAPSHOT*.jar app.jar
-ENTRYPOINT ["java","-jar","/app/app.jar","--spring.profiles.active=docker"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "/app/spring-boot-application.jar" ]
