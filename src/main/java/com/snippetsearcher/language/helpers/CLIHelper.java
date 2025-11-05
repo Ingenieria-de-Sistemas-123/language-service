@@ -9,7 +9,8 @@ import picocli.CommandLine;
 @Component
 public class CLIHelper {
 
-  public CliRun runCliWithFile(Object cliService, String content, String[] args) throws IOException {
+  public CliRun runCliWithFile(Object cliService, String content, String[] args)
+      throws IOException {
     File temp = Files.createTempFile("printscript-", ".ps").toFile();
     temp.deleteOnExit();
 
@@ -24,8 +25,10 @@ public class CLIHelper {
 
     ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
     ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
-    PrintWriter picocliOut = new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
-    PrintWriter picocliErr = new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
+    PrintWriter picocliOut =
+        new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
+    PrintWriter picocliErr =
+        new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
 
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
@@ -35,9 +38,7 @@ public class CLIHelper {
 
     int code;
     try {
-      CommandLine cmd = new CommandLine(cliService)
-              .setOut(picocliOut)
-              .setErr(picocliErr);
+      CommandLine cmd = new CommandLine(cliService).setOut(picocliOut).setErr(picocliErr);
 
       code = cmd.execute(resolved);
     } finally {
