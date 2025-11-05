@@ -1,5 +1,7 @@
 package com.snippetsearcher.language.controller;
 
+import com.snippetsearcher.language.service.ParserService;
+import java.io.IOException;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,14 @@ public class ValidateController {
   public record ValidateResponse(boolean valid, List<ValidationError> errors) {}
 
   @PostMapping
-  public ResponseEntity<ValidateResponse> validate(@RequestBody ValidateRequest req) {
-    if (req.content() != null && req.content().contains("ERROR")) {
-      var errors = List.of(new ValidationError("ParseError", 1, 1, "Found 'ERROR' token"));
-      return ResponseEntity.ok(new ValidateResponse(false, errors));
-    }
-    return ResponseEntity.ok(new ValidateResponse(true, List.of()));
+  public ResponseEntity<ValidateResponse> validate(@RequestBody ValidateRequest req)
+      throws IOException {
+    return ResponseEntity.ok(parserService.validate(req.content));
+  }
+
+  private ParserService parserService;
+
+  public ValidateController(ParserService parserService) {
+    this.parserService = parserService;
   }
 }
