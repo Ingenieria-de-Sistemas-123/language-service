@@ -65,3 +65,6 @@ jobs:
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:latest
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:${{ steps.tag.outputs.value }}
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:${{ steps.tag.outputs.branch }}
+          secrets: |
+            "github_user=${{ github.actor }}"
+            "github_token=${{ secrets.GITHUB_TOKEN }}"
