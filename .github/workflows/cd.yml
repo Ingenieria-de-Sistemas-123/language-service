@@ -32,7 +32,10 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ github.token}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GPR_USER: ${{ github.actor }}
+          GPR_KEY: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Normalize owner to lowercase
         id: img
@@ -62,3 +65,6 @@ jobs:
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:latest
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:${{ steps.tag.outputs.value }}
             ghcr.io/${{ steps.img.outputs.owner }}/language-service:${{ steps.tag.outputs.branch }}
+          secrets: |
+            "github_user=${{ github.actor }}"
+            "github_token=${{ secrets.GITHUB_TOKEN }}"
