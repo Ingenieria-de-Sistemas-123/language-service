@@ -1,13 +1,17 @@
 FROM gradle:8.10.1-jdk21 AS build
-COPY . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN,required \
-    --mount=type=secret,id=github_user,env=GITHUB_ACTOR,required \
-    gradle assemble
+COPY . .
+# Args para credenciales
+ARG GPR_USER
+ARG GPR_KEY
+#exponemos como env para que Gradle las lea
+ENV GPR_USER=${GPR_USER}
+ENV GPR_KEY=${GPR_KEY}
+
+RUN gradle --no-daemon assemble
+
 FROM eclipse-temurin:21.0.4_7-jre
 EXPOSE 8080
-RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
-
 WORKDIR /app
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "/app/spring-boot-application.jar" ]
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/app.jar
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=production","/app/app.jar"]

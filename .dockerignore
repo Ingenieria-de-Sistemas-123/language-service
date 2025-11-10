@@ -1,0 +1,4 @@
+.env
+gradle/gradle.properties
+.gradle/
+build/
