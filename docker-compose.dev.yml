@@ -1,10 +1,13 @@
 services:
   language-service:
-    build: .
+    build:
+      context: .
+      args:
+        GPR_USER: ${GPR_USER}
+        GPR_KEY: ${GPR_KEY}
     container_name: language-service
     networks: [ss-dev]
     environment:
       SPRING_PROFILES_ACTIVE: docker
 networks:
-  ss-dev:
-    external: true
+  ss-dev: {}
