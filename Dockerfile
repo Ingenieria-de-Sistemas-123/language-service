@@ -1,7 +1,8 @@
 FROM gradle:8.10.1-jdk21 AS build
 COPY . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN ./gradlew assemble
+RUN gradle clean bootJar --no-daemon
+
 FROM eclipse-temurin:21.0.4_7-jre
 EXPOSE 8080
 RUN mkdir /app
