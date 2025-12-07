@@ -22,17 +22,23 @@ out of the final image layers.
    export GITHUB_TOKEN="ghp_yourGeneratedToken"
    ```
 
-3. Run Docker build (or Compose) passing those env vars as BuildKit secrets:
-   ```bash
-   docker build -t language-service \
-     --secret id=github_token,env=GITHUB_TOKEN \
-     --secret id=github_user,env=GITHUB_USERNAME \
-     .
-   ```
+   3. Run Docker build (or Compose) passing those env vars as BuildKit secrets:
+    ```bash
+    docker build -t language-service \
+      --secret id=github_token,env=GITHUB_TOKEN \
+      --secret id=github_user,env=GITHUB_ACTOR \
+      .
+    ```
 
 If you prefer `docker compose build`, supply the same `--secret` flags:
 ```bash
 docker compose build language-service \
   --secret id=github_token,env=GITHUB_TOKEN \
-  --secret id=github_user,env=GITHUB_USERNAME
+  --secret id=github_user,env=GITHUB_ACTOR
+```
+
+### Local Helper Script
+For convenience, you can use the provided PowerShell script to build locally using the files in `.secrets/`:
+```powershell
+.\build_local.ps1
 ```
