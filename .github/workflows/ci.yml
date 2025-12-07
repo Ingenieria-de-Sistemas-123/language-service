@@ -21,6 +21,3 @@ jobs:
 
       - name: Build & Test
         run: ./gradlew clean build test jacocoTestReport --no-daemon
-        env:
-          GPR_USER: ${{ github.actor }}
-          GPR_KEY: ${{ secrets.GITHUB_TOKEN }}
