@@ -11,9 +11,16 @@ public class AnalyzeController {
 
   public record AnalyzeRequest(String language, String content, String version) {}
 
-  public record Issue(String message) {}
+  public record AnalyzeIssue(
+      String rule,
+      String message,
+      String severity,
+      int startLine,
+      int startCol,
+      int endLine,
+      int endCol) {}
 
-  public record AnalyzeResponse(List<Issue> issues, String raw) {}
+  public record AnalyzeResponse(List<AnalyzeIssue> issues, String raw) {}
 
   private final ParserService parserService;
 
