@@ -89,12 +89,22 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: GHCR_LOGIN_TOKEN,GHCR_LOGIN_USER
           script: |
-            set -euo
+            set -euo pipefail
             echo "[deploy-dev] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
             cd "${{ secrets.DEPLOY_WORKDIR }}"
             echo "$GHCR_LOGIN_TOKEN" | docker login ghcr.io -u "$GHCR_LOGIN_USER" --password-stdin
-            docker compose pull language-service
-            docker compose up -d --no-deps language-service
+            COMPOSE_FILE="docker-compose.dev.yml"
+            ENV_FILE=".env.dev"
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "::error file=$COMPOSE_FILE::Compose file not found"
+              exit 1
+            fi
+            ENV_FLAG=""
+            if [ -f "$ENV_FILE" ]; then
+              ENV_FLAG="--env-file $ENV_FILE"
+            fi
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG pull language-service
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG up -d --no-deps language-service
             docker image prune -f --filter "dangling=true"
 
   deploy-prod:
@@ -114,10 +124,15 @@ jobs:
           key: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
           envs: GHCR_LOGIN_TOKEN,GHCR_LOGIN_USER
           script: |
-            set -euo
+            set -euo pipefail
             echo "[deploy-prod] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
             cd "${{ secrets.PROD_DEPLOY_WORKDIR }}"
             echo "$GHCR_LOGIN_TOKEN" | docker login ghcr.io -u "$GHCR_LOGIN_USER" --password-stdin
-            docker compose pull language-service
-            docker compose up -d --no-deps language-service
+            COMPOSE_FILE="docker-compose.yml"
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "::error file=$COMPOSE_FILE::Compose file not found"
+              exit 1
+            fi
+            docker compose -f "$COMPOSE_FILE" pull language-service
+            docker compose -f "$COMPOSE_FILE" up -d --no-deps language-service
             docker image prune -f --filter "dangling=true"
