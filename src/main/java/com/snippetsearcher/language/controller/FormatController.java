@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/format")
 public class FormatController {
 
-  public record FormatRequest(String language, String content, String version, Boolean check) {}
+  public record FormatRequest(
+      String language, String content, String version, Boolean check, String configJson) {}
 
   public record FormatResponse(boolean changed, String formatted, String diagnostics) {}
 
@@ -20,7 +21,13 @@ public class FormatController {
 
   @PostMapping
   public ResponseEntity<FormatResponse> format(@RequestBody FormatRequest req) throws Exception {
-    var res = parserService.format(req.content(), req.version(), Boolean.TRUE.equals(req.check()));
+    var res =
+        parserService.format(
+            req.content(),
+            req.version(),
+            Boolean.TRUE.equals(req.check()),
+            req.configJson() // <--- NUEVO
+            );
     return ResponseEntity.ok(res);
   }
 }
