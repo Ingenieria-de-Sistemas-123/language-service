@@ -57,13 +57,14 @@ public class ParserService {
     }
   }
 
-  public ExecuteController.ExecuteResponse execute(String content, String version)
-      throws IOException {
+  public ExecuteController.ExecuteResponse execute(String content, String version, String input)
+          throws IOException {
     var run =
-        helper.runCliWithFile(
-            cliService,
-            content,
-            helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
+            helper.runCliWithFileAndInput(
+                    cliService,
+                    content,
+                    input,
+                    helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
     return new ExecuteController.ExecuteResponse(run.exitCode(), run.stdout(), run.stderr());
   }
 
