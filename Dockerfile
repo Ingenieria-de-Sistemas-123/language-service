@@ -3,7 +3,7 @@ COPY . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN,required \
     --mount=type=secret,id=github_user,env=GITHUB_ACTOR,required \
-    gradle assemble
+    chmod +x ./gradlew && ./gradlew assemble
 FROM eclipse-temurin:21.0.4_7-jre
 EXPOSE 8080
 RUN mkdir /app

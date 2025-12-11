@@ -7,6 +7,7 @@ import com.snippetsearcher.language.controller.ValidateController;
 import com.snippetsearcher.language.helpers.CLIHelper;
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,12 +30,13 @@ public class ParserService {
 
     if (run.exitCode() == 0) {
       return new ValidateController.ValidateResponse(true, List.of());
-    } else {
-      var err =
-          new ValidateController.ValidationError(
-              "parse", -1, -1, helper.prefer(run.stderr(), run.stdout()));
-      return new ValidateController.ValidateResponse(false, List.of(err));
     }
+
+    var errorDetails = parseCliValidationError(helper.prefer(run.stderr(), run.stdout()));
+    var err =
+        new ValidateController.ValidationError(
+            "parse", errorDetails.line(), errorDetails.col(), errorDetails.message());
+    return new ValidateController.ValidateResponse(false, List.of(err));
   }
 
   public FormatController.FormatResponse format(String content, String version, boolean check)
@@ -78,4 +80,27 @@ public class ParserService {
         run.stdout().lines().filter(s -> !s.isBlank()).map(AnalyzeController.Issue::new).toList();
     return new AnalyzeController.AnalyzeResponse(issues, helper.prefer(run.stdout(), run.stderr()));
   }
+
+  private static final Pattern VALIDATION_ERROR_PATTERN =
+      Pattern.compile("^(.+?):(\\d+):(\\d+) - (\\d+):(\\d+): error: (.+)$");
+
+  private CliValidationError parseCliValidationError(String output) {
+    if (output == null || output.isBlank()) {
+      return new CliValidationError(-1, -1, "");
+    }
+
+    for (String line : output.split("\\R")) {
+      var matcher = VALIDATION_ERROR_PATTERN.matcher(line.trim());
+      if (matcher.matches()) {
+        return new CliValidationError(
+            Integer.parseInt(matcher.group(2)),
+            Integer.parseInt(matcher.group(3)),
+            matcher.group(6).trim());
+      }
+    }
+
+    return new CliValidationError(-1, -1, output.trim());
+  }
+
+  private record CliValidationError(int line, int col, String message) {}
 }
