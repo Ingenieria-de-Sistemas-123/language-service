@@ -40,7 +40,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// PrintScript toolchain
-	implementation 'org.printscript:cli:1.5'
+	implementation 'org.printscript:cli:1.6'
 	implementation 'org.printscript:linter:1.6'
 	implementation 'org.printscript:runner:1.6'
 	implementation 'org.printscript:common:1.2'

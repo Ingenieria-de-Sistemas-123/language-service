@@ -146,13 +146,7 @@ public class ParserService {
     var failure = outcome.getFailure();
     var issue =
         new AnalyzeController.AnalyzeIssue(
-            "analyze-error",
-            failure != null ? failure.getMessage() : "Unknown analyze error",
-            "ERROR",
-            1,
-            1,
-            1,
-            1);
+            "analyze-error", failure.getMessage(), "ERROR", 1, 1, 1, 1);
     return new AnalyzeController.AnalyzeResponse(java.util.List.of(issue), null);
   }
 
