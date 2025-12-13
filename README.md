@@ -42,3 +42,10 @@ For convenience, you can use the provided PowerShell script to build locally usi
 ```powershell
 .\build_local.ps1
 ```
+
+## Deployment (GitHub Actions)
+
+The `cd.yml` workflow deploys via SSH and expects the VM to have the `infra` repo with the compose files.
+
+- `DEPLOY_WORKDIR_PROD` (secret): base directory on the VM (defaults to `$HOME`); the workflow will try `$DEPLOY_WORKDIR_PROD`, `$DEPLOY_WORKDIR_PROD/infra`, and `$HOME/infra`.
+- `INFRA_REF_PROD` (secret, optional): branch/ref to checkout in the `infra` repo before running `docker compose` (e.g. `main` or `dev`).
