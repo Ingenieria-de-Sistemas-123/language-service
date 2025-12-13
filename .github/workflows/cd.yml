@@ -9,6 +9,9 @@ jobs:
   publish:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    outputs:
+      image_repo: ghcr.io/${{ steps.img.outputs.owner }}/language-service
+      deploy_tag: ${{ steps.tag.outputs.value }}
 
     permissions:
       contents: read
@@ -68,3 +71,107 @@ jobs:
           secrets: |
             "github_user=${{ github.actor }}"
             "github_token=${{ secrets.GITHUB_TOKEN }}"
+
+  deploy-dev:
+    name: Deploy to VM (dev)
+    runs-on: ubuntu-latest
+    needs: publish
+    if: needs.publish.result == 'success' && github.ref == 'refs/heads/dev'
+    steps:
+      - name: Deploy updated service
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_LOGIN_TOKEN: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+          GHCR_LOGIN_USER: ${{ secrets.GHCR_USER || github.actor }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: GHCR_LOGIN_TOKEN,GHCR_LOGIN_USER
+          script: |
+            set -euo pipefail
+            echo "[deploy-dev] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
+            cd "${{ secrets.DEPLOY_WORKDIR }}"
+            echo "$GHCR_LOGIN_TOKEN" | docker login ghcr.io -u "$GHCR_LOGIN_USER" --password-stdin
+            COMPOSE_FILE="docker-compose.dev.yml"
+            ENV_FILE=".env.dev"
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "::error file=$COMPOSE_FILE::Compose file not found"
+              exit 1
+            fi
+            ENV_FLAG=""
+            if [ -f "$ENV_FILE" ]; then
+              ENV_FLAG="--env-file $ENV_FILE"
+            fi
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG pull language-service
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG up -d --no-deps language-service
+            docker image prune -f --filter "dangling=true"
+
+  deploy-prod:
+    name: Deploy to VM (prod)
+    runs-on: ubuntu-latest
+    needs: publish
+    if: needs.publish.result == 'success' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy updated service
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_LOGIN_TOKEN_PROD: ${{ secrets.GHCR_TOKEN }}
+          GHCR_LOGIN_USER_PROD: ${{ secrets.GHCR_USER }}
+        with:
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER_PROD }}
+          key: ${{ secrets.DEPLOY_SSH_KEY_PROD }}
+          envs: GHCR_LOGIN_TOKEN_PROD,GHCR_LOGIN_USER_PROD
+          script: |
+            set -euo pipefail
+            IMAGE_REPO="${{ needs.publish.outputs.image_repo }}"
+            IMAGE_TAG="latest"
+            export LANGUAGE_SERVICE_IMAGE="$IMAGE_REPO:$IMAGE_TAG"
+            export LANGUAGE_SERVICE_TAG="$IMAGE_TAG"
+            echo "[deploy-prod] Using image: $IMAGE_REPO:$IMAGE_TAG"
+
+            BASE_DIR="${{ secrets.DEPLOY_WORKDIR_PROD }}"
+            if [ -z "$BASE_DIR" ]; then
+              BASE_DIR="$HOME"
+            fi
+
+            for dir in "$BASE_DIR" "$BASE_DIR/infra" "$HOME/infra"; do
+              if [ -d "$dir" ] && { [ -f "$dir/docker-compose.prod.yml" ] || [ -f "$dir/docker-compose.yml" ]; }; then
+                cd "$dir"
+                break
+              fi
+            done
+
+            if [ ! -f "docker-compose.prod.yml" ] && [ ! -f "docker-compose.yml" ]; then
+              echo "::error::No docker compose file found in '$BASE_DIR', '$BASE_DIR/infra' or '$HOME/infra'"
+              echo "::error::Files in $PWD:"
+              ls -la
+              exit 1
+            fi
+
+            INFRA_REF_PROD="${{ secrets.INFRA_REF_PROD }}"
+            if [ -n "$INFRA_REF_PROD" ] && [ -d ".git" ]; then
+              git fetch --all --prune
+              git checkout -f "$INFRA_REF_PROD"
+              git reset --hard "origin/$INFRA_REF_PROD"
+            fi
+
+            echo "$GHCR_LOGIN_TOKEN_PROD" | docker login ghcr.io -u "$GHCR_LOGIN_USER_PROD" --password-stdin
+
+            COMPOSE_FILE_PROD="docker-compose.prod.yml"
+            if [ ! -f "$COMPOSE_FILE_PROD" ]; then
+              COMPOSE_FILE_PROD="docker-compose.yml"
+            fi
+            ENV_FILE_PROD=".env.prod"
+            if [ ! -f "$COMPOSE_FILE_PROD" ]; then
+              echo "::error file=$COMPOSE_FILE_PROD::Compose file not found"
+              exit 1
+            fi
+            ENV_FLAG_PROD=""
+            if [ -f "$ENV_FILE_PROD" ]; then
+              ENV_FLAG_PROD="--env-file $ENV_FILE_PROD"
+            fi
+            docker compose -f "$COMPOSE_FILE_PROD" $ENV_FLAG_PROD pull language-service
+            docker compose -f "$COMPOSE_FILE_PROD" $ENV_FLAG_PROD up -d --no-deps language-service
+            docker image prune -f --filter "dangling=true"
