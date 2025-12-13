@@ -87,13 +87,24 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: GHCR_LOGIN_TOKEN,GHCR_LOGIN_USER
           script: |
-            set -euo
+            set -euo pipefail
             echo "[deploy-dev] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
             cd "${{ secrets.DEPLOY_WORKDIR }}"
             echo "$GHCR_LOGIN_TOKEN" | docker login ghcr.io -u "$GHCR_LOGIN_USER" --password-stdin
-            docker compose pull language-service
-            docker compose up -d --no-deps language-service
+            COMPOSE_FILE="docker-compose.dev.yml"
+            ENV_FILE=".env.dev"
+            if [ ! -f "$COMPOSE_FILE" ]; then
+              echo "::error file=$COMPOSE_FILE::Compose file not found"
+              exit 1
+            fi
+            ENV_FLAG=""
+            if [ -f "$ENV_FILE" ]; then
+              ENV_FLAG="--env-file $ENV_FILE"
+            fi
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG pull language-service
+            docker compose -f "$COMPOSE_FILE" $ENV_FLAG up -d --no-deps language-service
             docker image prune -f --filter "dangling=true"
 
   deploy-prod:
@@ -105,17 +116,28 @@ jobs:
       - name: Deploy updated service
         uses: appleboy/ssh-action@v1.0.3
         env:
-          GHCR_LOGIN_TOKEN: ${{ secrets.PROD_GHCR_TOKEN }}
-          GHCR_LOGIN_USER: ${{ secrets.PROD_GHCR_USER }}
+          GHCR_LOGIN_TOKEN_PROD: ${{ secrets.GHCR_TOKEN }}
+          GHCR_LOGIN_USER_PROD: ${{ secrets.GHCR_USER }}
         with:
-          host: ${{ secrets.PROD_VM_HOST }}
-          username: ${{ secrets.PROD_VM_USER }}
-          key: ${{ secrets.PROD_DEPLOY_SSH_KEY }}
+          host: ${{ secrets.VM_HOST_PROD }}
+          username: ${{ secrets.VM_USER_PROD }}
+          key: ${{ secrets.DEPLOY_SSH_KEY_PROD }}
+          envs: GHCR_LOGIN_TOKEN_PROD,GHCR_LOGIN_USER_PROD
           script: |
-            set -euo
+            set -euo pipefail
             echo "[deploy-prod] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
-            cd "${{ secrets.PROD_DEPLOY_WORKDIR }}"
-            echo "$GHCR_LOGIN_TOKEN" | docker login ghcr.io -u "$GHCR_LOGIN_USER" --password-stdin
-            docker compose pull language-service
-            docker compose up -d --no-deps language-service
+            cd "${{ secrets.DEPLOY_WORKDIR_PROD }}"
+            echo "$GHCR_LOGIN_TOKEN_PROD" | docker login ghcr.io -u "$GHCR_LOGIN_USER_PROD" --password-stdin
+            COMPOSE_FILE_PROD="docker-compose.prod.yml"
+            ENV_FILE_PROD=".env.prod"
+            if [ ! -f "$COMPOSE_FILE_PROD" ]; then
+              echo "::error file=$COMPOSE_FILE_PROD::Compose file not found"
+              exit 1
+            fi
+            ENV_FLAG_PROD=""
+            if [ -f "$ENV_FILE_PROD" ]; then
+              ENV_FLAG_PROD="--env-file $ENV_FILE_PROD"
+            fi
+            docker compose -f "$COMPOSE_FILE_PROD" $ENV_FLAG_PROD pull language-service
+            docker compose -f "$COMPOSE_FILE_PROD" $ENV_FLAG_PROD up -d --no-deps language-service
             docker image prune -f --filter "dangling=true"
