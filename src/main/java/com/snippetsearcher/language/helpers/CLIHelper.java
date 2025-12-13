@@ -52,7 +52,7 @@ public class CLIHelper {
   }
 
   public CliRun runCliWithFileAndInput(
-          Object cliService, String content, String input, String[] args) throws IOException {
+      Object cliService, String content, String input, String[] args) throws IOException {
 
     File temp = Files.createTempFile("printscript-", ".ps").toFile();
     temp.deleteOnExit();
@@ -69,9 +69,9 @@ public class CLIHelper {
     ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
     ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
     PrintWriter picocliOut =
-            new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
+        new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
     PrintWriter picocliErr =
-            new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
+        new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
 
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
