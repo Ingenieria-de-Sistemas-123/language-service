@@ -1,4 +1,4 @@
-package com.snippetsearcher.language;
+package com.snippetsearcher.language.controller;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
