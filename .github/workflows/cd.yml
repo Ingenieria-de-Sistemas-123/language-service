@@ -125,7 +125,11 @@ jobs:
           envs: GHCR_LOGIN_TOKEN_PROD,GHCR_LOGIN_USER_PROD
           script: |
             set -euo pipefail
-            echo "[deploy-prod] Using image: ${{ needs.publish.outputs.image_repo }}:${{ needs.publish.outputs.deploy_tag }}"
+            IMAGE_REPO="${{ needs.publish.outputs.image_repo }}"
+            IMAGE_TAG="latest"
+            export LANGUAGE_SERVICE_IMAGE="$IMAGE_REPO:$IMAGE_TAG"
+            export LANGUAGE_SERVICE_TAG="$IMAGE_TAG"
+            echo "[deploy-prod] Using image: $IMAGE_REPO:$IMAGE_TAG"
 
             BASE_DIR="${{ secrets.DEPLOY_WORKDIR_PROD }}"
             if [ -z "$BASE_DIR" ]; then
