@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/execute")
 public class ExecuteController {
 
-  public record ExecuteRequest(String language, String content, String version) {}
+  public record ExecuteRequest(String language, String content, String version, String input) {}
 
   public record ExecuteResponse(int exitCode, String stdout, String stderr) {}
 
@@ -20,7 +20,7 @@ public class ExecuteController {
 
   @PostMapping
   public ResponseEntity<ExecuteResponse> execute(@RequestBody ExecuteRequest req) throws Exception {
-    var res = parserService.execute(req.content(), req.version());
+    var res = parserService.execute(req.content(), req.version(), req.input());
     return ResponseEntity.ok(res);
   }
 }
