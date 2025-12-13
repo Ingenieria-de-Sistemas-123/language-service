@@ -96,11 +96,11 @@ public class ParserService {
   public ExecuteController.ExecuteResponse execute(String content, String version, String input)
       throws IOException {
     var run =
-        helper.runCliWithFile(
+        helper.runCliWithFileAndInput(
             cliService,
             content,
-            helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")),
-            input);
+            input,
+            helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
     return new ExecuteController.ExecuteResponse(run.exitCode(), run.stdout(), run.stderr());
   }
 

@@ -109,7 +109,7 @@ if (!tasks.names.contains('jacocoTestCoverageVerification')) {
 		violationRules {
 			rule {
 				limit {
-					minimum = 0.00
+					minimum = 0.80
 				}
 			}
 		}
@@ -124,7 +124,7 @@ if (!tasks.names.contains('jacocoTestCoverageVerification')) {
 		violationRules {
 			rule {
 				limit {
-					minimum = 0.00
+					minimum = 0.80
 				}
 			}
 		}
@@ -158,3 +158,5 @@ publishing {
 		}
 	}
 }
+
+
