@@ -23,12 +23,12 @@ public class ParserService {
   }
 
   public ValidateController.ValidateResponse validate(String content, String version)
-          throws IOException {
+      throws IOException {
     var run =
-            helper.runCliWithFile(
-                    cliService,
-                    content,
-                    helper.args("validate", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
+        helper.runCliWithFile(
+            cliService,
+            content,
+            helper.args("validate", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
 
     if (run.exitCode() == 0) {
       return new ValidateController.ValidateResponse(true, List.of());
@@ -36,20 +36,20 @@ public class ParserService {
 
     var errorDetails = parseCliValidationError(helper.prefer(run.stderr(), run.stdout()));
     var err =
-            new ValidateController.ValidationError(
-                    "parse", errorDetails.line(), errorDetails.col(), errorDetails.message());
+        new ValidateController.ValidationError(
+            "parse", errorDetails.line(), errorDetails.col(), errorDetails.message());
     return new ValidateController.ValidateResponse(false, List.of(err));
   }
 
   public FormatController.FormatResponse format(
-          String content, String version, boolean check, String configJson // puede venir null
-  ) throws IOException {
+      String content, String version, boolean check, String configJson // puede venir null
+      ) throws IOException {
 
     // Armamos args base
     var argsList =
-            new java.util.ArrayList<String>(
-                    java.util.List.of(
-                            "format", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
+        new java.util.ArrayList<String>(
+            java.util.List.of(
+                "format", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
 
     if (check) {
       argsList.add("--check");
@@ -62,7 +62,7 @@ public class ParserService {
       if (configJson != null && !configJson.isBlank()) {
         configFile = java.nio.file.Files.createTempFile("ps-formatter-", ".json");
         java.nio.file.Files.writeString(
-                configFile, configJson, java.nio.charset.StandardCharsets.UTF_8);
+            configFile, configJson, java.nio.charset.StandardCharsets.UTF_8);
 
         // Flag que soporta el CLI: --config (o -c)
         argsList.add("--config");
@@ -94,33 +94,33 @@ public class ParserService {
   }
 
   public ExecuteController.ExecuteResponse execute(String content, String version, String input)
-          throws IOException {
+      throws IOException {
     var run =
-            helper.runCliWithFileAndInput(
-                    cliService,
-                    content,
-                    input,
-                    helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
+        helper.runCliWithFileAndInput(
+            cliService,
+            content,
+            input,
+            helper.args("execute", "--file", "%FILE%", "--version", helper.safe(version, "1.0")));
     return new ExecuteController.ExecuteResponse(run.exitCode(), run.stdout(), run.stderr());
   }
 
   public AnalyzeController.AnalyzeResponse analyze(String content, String version)
-          throws IOException {
+      throws IOException {
     var outcome = linterBridge.analyze(content == null ? "" : content, helper.safe(version, "1.0"));
 
     var issues =
-            outcome.getIssues().stream()
-                    .map(
-                            issue ->
-                                    new AnalyzeController.AnalyzeIssue(
-                                            issue.getRuleId(),
-                                            issue.getMessage(),
-                                            issue.getSeverity() == null ? null : issue.getSeverity().name(),
-                                            issue.getStartLine(),
-                                            issue.getStartCol(),
-                                            issue.getEndLine(),
-                                            issue.getEndCol()))
-                    .toList();
+        outcome.getIssues().stream()
+            .map(
+                issue ->
+                    new AnalyzeController.AnalyzeIssue(
+                        issue.getRuleId(),
+                        issue.getMessage(),
+                        issue.getSeverity() == null ? null : issue.getSeverity().name(),
+                        issue.getStartLine(),
+                        issue.getStartCol(),
+                        issue.getEndLine(),
+                        issue.getEndCol()))
+            .toList();
 
     if (outcome.getError() == null && outcome.getFailure() == null) {
       return new AnalyzeController.AnalyzeResponse(issues, null);
@@ -133,26 +133,26 @@ public class ParserService {
       var end = span.getEnd();
 
       var issue =
-              new AnalyzeController.AnalyzeIssue(
-                      "parse-error",
-                      err.getMessage(),
-                      "ERROR",
-                      start.getLine(),
-                      start.getColumn(),
-                      end.getLine(),
-                      end.getColumn());
+          new AnalyzeController.AnalyzeIssue(
+              "parse-error",
+              err.getMessage(),
+              "ERROR",
+              start.getLine(),
+              start.getColumn(),
+              end.getLine(),
+              end.getColumn());
       return new AnalyzeController.AnalyzeResponse(java.util.List.of(issue), err.toString());
     }
 
     var failure = outcome.getFailure();
     var issue =
-            new AnalyzeController.AnalyzeIssue(
-                    "analyze-error", failure.getMessage(), "ERROR", 1, 1, 1, 1);
+        new AnalyzeController.AnalyzeIssue(
+            "analyze-error", failure.getMessage(), "ERROR", 1, 1, 1, 1);
     return new AnalyzeController.AnalyzeResponse(java.util.List.of(issue), null);
   }
 
   private static final Pattern VALIDATION_ERROR_PATTERN =
-          Pattern.compile("^(.+?):(\\d+):(\\d+) - (\\d+):(\\d+): error: (.+)$");
+      Pattern.compile("^(.+?):(\\d+):(\\d+) - (\\d+):(\\d+): error: (.+)$");
 
   private CliValidationError parseCliValidationError(String output) {
     if (output == null || output.isBlank()) {
@@ -163,9 +163,9 @@ public class ParserService {
       var matcher = VALIDATION_ERROR_PATTERN.matcher(line.trim());
       if (matcher.matches()) {
         return new CliValidationError(
-                Integer.parseInt(matcher.group(2)),
-                Integer.parseInt(matcher.group(3)),
-                matcher.group(6).trim());
+            Integer.parseInt(matcher.group(2)),
+            Integer.parseInt(matcher.group(3)),
+            matcher.group(6).trim());
       }
     }
 
