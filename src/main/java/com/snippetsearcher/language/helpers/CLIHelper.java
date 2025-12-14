@@ -10,12 +10,7 @@ import picocli.CommandLine;
 public class CLIHelper {
 
   public CliRun runCliWithFile(Object cliService, String content, String[] args)
-      throws IOException {
-    return runCliWithFile(cliService, content, args, null);
-  }
-
-  public CliRun runCliWithFile(
-      Object cliService, String content, String[] args, String input) throws IOException {
+          throws IOException {
     File temp = Files.createTempFile("printscript-", ".ps").toFile();
     temp.deleteOnExit();
 
@@ -31,17 +26,13 @@ public class CLIHelper {
     ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
     ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
     PrintWriter picocliOut =
-        new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
+            new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
     PrintWriter picocliErr =
-        new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
+            new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
 
-    InputStream originalIn = System.in;
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
 
-    if (input != null) {
-      System.setIn(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
-    }
     System.setOut(new PrintStream(outBytes, true, StandardCharsets.UTF_8));
     System.setErr(new PrintStream(errBytes, true, StandardCharsets.UTF_8));
 
@@ -51,7 +42,6 @@ public class CLIHelper {
 
       code = cmd.execute(resolved);
     } finally {
-      System.setIn(originalIn);
       System.setOut(originalOut);
       System.setErr(originalErr);
     }
@@ -62,7 +52,7 @@ public class CLIHelper {
   }
 
   public CliRun runCliWithFileAndInput(
-      Object cliService, String content, String input, String[] args) throws IOException {
+          Object cliService, String content, String input, String[] args) throws IOException {
 
     File temp = Files.createTempFile("printscript-", ".ps").toFile();
     temp.deleteOnExit();
@@ -79,9 +69,9 @@ public class CLIHelper {
     ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
     ByteArrayOutputStream errBytes = new ByteArrayOutputStream();
     PrintWriter picocliOut =
-        new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
+            new PrintWriter(new OutputStreamWriter(outBytes, StandardCharsets.UTF_8), true);
     PrintWriter picocliErr =
-        new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
+            new PrintWriter(new OutputStreamWriter(errBytes, StandardCharsets.UTF_8), true);
 
     PrintStream originalOut = System.out;
     PrintStream originalErr = System.err;
