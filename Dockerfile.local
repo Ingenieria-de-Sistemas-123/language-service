@@ -9,7 +9,7 @@ RUN --mount=type=secret,id=github_token \
     --mount=type=secret,id=github_user \
     bash -c 'set -euo pipefail && export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && export GITHUB_ACTOR="$(cat /run/secrets/github_user)" && gradle assemble'
 
-FROM eclipse-temurin:21.0.4_7-jre
+FROM eclipse-temurin:21-jre
 
 EXPOSE 8080
 
@@ -19,4 +19,4 @@ COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application
 
 WORKDIR /app
 
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "/app/spring-boot-application.jar"]
+ENTRYPOINT ["java","-jar","/app/spring-boot-application.jar"]
